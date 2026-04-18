@@ -2,12 +2,17 @@ use clap::{Parser, Subcommand};
 use qwen_tts::io::{GenerationArgs, IoArgs, ModelArgs, SynthesisMode, VoiceArgs};
 use std::path::PathBuf;
 
+
 fn default_device() -> String {
-    if cfg!(target_os = "macos") {
-        "metal".to_string()
-    } else {
-        "cuda".to_string()
+    if cfg!(target_os = "macos") && cfg!(feature = "metal") {
+        return String::from("metal");
     }
+
+    if cfg!(feature = "cuda") {
+        return String::from("cuda");
+    }
+
+    String::from("cpu")
 }
 
 /// Qwen3-TTS Command Line Interface
@@ -50,7 +55,7 @@ pub struct Cli {
     #[arg(long, conflicts_with_all = ["ref_audio", "save_prompt"])]
     pub load_prompt: Option<PathBuf>,
 
-    /// Language for synthesis
+    /// Language for synthesis (Language Support: Chinese, English, Japanese, Korean, German, French, Russian, Portuguese, Spanish, Italian)
     #[arg(short, long, default_value = "auto")]
     pub language: String,
 
@@ -110,7 +115,7 @@ pub struct Cli {
     #[arg(long)]
     pub no_subtalker_sample: bool,
 
-    /// Speaker name for CustomVoice model
+    /// Speaker name for CustomVoice model (the supported speaker list: ["aiden", "vivian", "ono_anna", "uncle_fu", "eric", "sohee", "dylan", "serena", "ryan"])
     #[arg(long, conflicts_with_all = ["ref_audio", "ref_text", "voice_design"])]
     pub speaker: Option<String>,
 
